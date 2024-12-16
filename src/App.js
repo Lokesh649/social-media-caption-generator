@@ -1,15 +1,11 @@
-import logo from './logo.svg';
 import './App.css';
 import axios from 'axios';
 import { useState } from 'react';
 function App() {  
- 
-  // Firebase automatically handles authentication and tokens
-  const geminiApiKey = process.env.GEMINI_api_key; // Using environment variable for secure API key
 
   
- 
-
+  // Firebase automatically handles authentication and tokens
+  const geminiApiKey = process.env.REACT_APP_GEMINI_API_KEY;// Using environment variable for secure API key
   const [content, setContent] = useState('');
   const [tone, setTone] = useState('');
   const [platform, setPlatform] = useState('');
@@ -20,15 +16,35 @@ function App() {
     event.preventDefault();
 
     try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
       const prompt = `Create a ${tone} caption for ${content} suitable for ${platform}. Keep the caption under ${length} characters.`;
-      const resp = await axios.post(
-        // "https://gemini.googleapis.com/v1/text:generate", 
-        //"https://us-central1-aiplatform.googleapis.com/v1/projects/social-media-captions-443608/locations/us-central1/models/publishers/google/models/gemini-pro-vision:predict",
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyCodA02wD3MtRB_b0zBjrvhLrGtcF_RcJc",
-         
-       );
-      const response =response.data.predictions[0].text;
-      setGeneratedCaption(response.data.caption);
+      
+      /*
+        *Prepare Data
+      */
+        const data = {
+          contents: [
+            {
+              parts: [
+                {
+                  text: `${prompt}`,
+                },
+              ],
+            },
+          ]
+        };
+
+       
+
+        try {
+          const response = await axios.post(endpoint, data);
+          console.log('resp',response);
+          const generatedText =response.data.candidates[0].content.parts[0].text;
+          console.log(generatedText); // Output the generated text
+          setGeneratedCaption(generatedText);
+        } catch (error) {
+          console.error('Error generating content:', error);
+        }
 
       // Clear results for next submission
       setContent('');
